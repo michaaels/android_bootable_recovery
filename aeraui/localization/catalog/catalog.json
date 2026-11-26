@@ -96,6 +96,12 @@
       "zh_CN": "默认",
       "zh_TW": "預設"
     },
+    "Private IPv4": {
+      "en": "Private IPv4",
+      "es-ES": "IPv4 privada",
+      "zh_CN": "内网 IPv4",
+      "zh_TW": "私有 IPv4"
+    },
     "Public IPv4": {
       "en": "Public IPv4",
       "es-ES": "IPv4 pública",

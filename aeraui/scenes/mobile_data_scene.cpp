@@ -11,7 +11,7 @@ using namespace widgets;
 using namespace design;
 struct MobileUi {
   lv_obj_t *screen=nullptr,*title=nullptr,*detail=nullptr,*signal=nullptr,*network=nullptr;
-  lv_obj_t *status_icon=nullptr,*address=nullptr;
+  lv_obj_t *status_icon=nullptr,*address=nullptr,*private_address=nullptr;
   lv_obj_t *toggle=nullptr,*radio=nullptr,*apn_button=nullptr,*apn_text=nullptr;
   lv_obj_t *auto_radio=nullptr;
   lv_obj_t *pin_button=nullptr,*pin_status=nullptr,*saved_pins=nullptr;
@@ -73,6 +73,10 @@ void RefreshMobile(MobileUi *state) {
   const std::string address=!mobile.connected?"Not connected":!public_ip.address.empty()?public_ip.address:
       public_ip.pending?"Checking...":"Unavailable";
   lv_label_set_text(state->address,i18n::Translate(address.c_str()));
+  // The carrier assigns the private address per SIM; the public one is often
+  // shared behind its NAT, so only this one tells two SIMs apart.
+  const std::string private_address=mobile.connected&&!mobile.address.empty()?mobile.address:"Not connected";
+  lv_label_set_text(state->private_address,i18n::Translate(private_address.c_str()));
   if(network.empty())network="Not connected";
   lv_label_set_text(state->network,network.c_str());
   const std::string strength=mobile.signal_valid?std::to_string(mobile.signal_dbm)+" dBm":"Signal unavailable";
@@ -321,7 +325,8 @@ void BuildMobileDataScene(lv_obj_t *screen,ActionCallback callback,void *context
     lv_obj_set_width(value,0);lv_obj_set_flex_grow(value,1);
     lv_obj_set_style_text_align(value,LV_TEXT_ALIGN_RIGHT,0);
     lv_label_set_long_mode(value,LV_LABEL_LONG_WRAP);return value;};
-  state->address=field("Public IPv4");state->signal=field("Signal");
+  state->address=field("Public IPv4");state->private_address=field("Private IPv4");
+  state->signal=field("Signal");
   label(information,"Data only. Mobile data disconnects before flashing or restoring.",
         &lv_font_montserrat_24,kMuted);
   Navigation(screen,Action::kSettings,callback,context);
