@@ -1059,6 +1059,12 @@
       "zh_CN": "已启用",
       "zh_TW": "已啟用"
     },
+    "Error": {
+      "en": "Error",
+      "es-ES": "Error",
+      "zh_CN": "错误",
+      "zh_TW": "錯誤"
+    },
     "Accept incoming only": {
       "en": "Accept incoming only",
       "de_DE": "Nur eingehend akzeptieren",

@@ -670,6 +670,11 @@ const char *WifiStateTag(const std::string &state) {
   if (state == "disconnecting") return "Disconnecting";
   if (state == "scanning") return "Scanning";
   if (state == "connecting") return "Connecting";
+  // Transient states published right after a toggle or a failed operation.
+  if (state == "enabled") return "Enabled";
+  if (state == "disabled") return "Disabled";
+  if (state == "connected") return "Connected";
+  if (state == "error") return "Error";
   return state.c_str();
 }
 
