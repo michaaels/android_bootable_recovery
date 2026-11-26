@@ -657,9 +657,44 @@ std::string BusyTitle(const WifiUi *state) {
     case WifiOperation::kDisableFastbootWifi: base = "Closing fastboot tunnel"; break;
     case WifiOperation::kSaveIpConfig: base = "Applying IP settings"; break;
   }
-  std::string title(base);
+  // Translate before appending the animated dots, which are not part of the tag.
+  std::string title(i18n::Translate(base));
   title.append(1 + (state->busy_phase % 3), '.');
   return title;
+}
+
+// The backend reports lowercase wlan_state values; show them as catalog tags.
+const char *WifiStateTag(const std::string &state) {
+  if (state == "enabling") return "Enabling";
+  if (state == "disabling") return "Disabling";
+  if (state == "disconnecting") return "Disconnecting";
+  if (state == "scanning") return "Scanning";
+  if (state == "connecting") return "Connecting";
+  return state.c_str();
+}
+
+// wlan.cpp reports English "Label: value" lines; translate the label and the
+// OK / Failed status, keeping SSIDs and addresses unchanged.
+std::string TranslateTestResult(const std::string &text) {
+  std::string out;
+  size_t start = 0;
+  while (start < text.size()) {
+    size_t end = text.find('\n', start);
+    if (end == std::string::npos) end = text.size();
+    const std::string line = text.substr(start, end - start);
+    const size_t colon = line.find(": ");
+    if (!out.empty()) out += '\n';
+    if (colon == std::string::npos) {
+      out += i18n::Translate(line.c_str());
+    } else {
+      const std::string value = line.substr(colon + 2);
+      out += i18n::Translate(line.substr(0, colon).c_str());
+      out += ": ";
+      out += value == "OK" || value == "Failed" ? i18n::Translate(value.c_str()) : value;
+    }
+    start = end + 1;
+  }
+  return out;
 }
 
 void EmptyNetworkCard(WifiUi *state, const char *icon, const char *title,
@@ -1224,7 +1259,7 @@ void Refresh(WifiUi *state, bool force) {
     detail = status.ssid;
     if (!status.ip_address.empty()) detail += "  /  " + status.ip_address;
   } else if (busy) {
-    if (!status.state.empty()) detail = status.state;
+    if (!status.state.empty()) detail = WifiStateTag(status.state);
     else if (state->running == WifiOperation::kConnect && !gRequest.ssid.empty())
       detail = i18n::Format("Joining %s", gRequest.ssid.c_str());
     else detail = "Updating wireless state";
@@ -1437,7 +1472,8 @@ void CompleteWifiOperation(const WifiScene &scene, bool success) {
   if (completed == WifiOperation::kTest) {
     const auto status = RecoveryWifiStatus();
     Sheet(state->screen, success ? "Network test passed" : "Network test failed",
-          status.test_result.empty() ? "No test details were returned." : status.test_result);
+          status.test_result.empty() ? "No test details were returned."
+                                     : TranslateTestResult(status.test_result));
   } else if (adb_operation) {
     if (state->settings_message && lv_obj_is_valid(state->settings_message)) {
       i18n::BindLabel(state->settings_message,
